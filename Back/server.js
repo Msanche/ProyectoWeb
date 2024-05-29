@@ -46,7 +46,7 @@ app.get('/getFotos', (req, res) => {
             res.json(results.map(img => ({
                 
                 id:img.id,
-                imagen: img.imagen ? `http://localhost:3001/getFotos/${img.id}` : null,
+                imagen: img.imagen ? `http://localhost:3001/getFotos/${img.imagen}` : null,
             })));
         }
     });
