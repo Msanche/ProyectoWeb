@@ -156,7 +156,7 @@ const Feed: React.FC = () => {
     const [error, setError] = useState<string>('');
     const navigate = useNavigate();
 
-    useEffect(() => {
+    useEffect (() => {
         fetch('http://localhost:3001/publicaciones')
             .then(response => {
                 if (!response.ok) {
@@ -237,7 +237,7 @@ const Feed: React.FC = () => {
                         key={publi.id}
                         username={`Usuario ${publi.id_usuario}`} 
                         title={publi.titulo}
-                        imageSrc={publi.imagen ? `data:image/jpeg;base64,${publi.imagen}` : ''} 
+                        imageSrc={publi.imagen ? `http://localhost:3001/${publi.imagen}` : ''} // URL completa para las imágenes
                         description={publi.contenido} 
                         likes={publi.likes}
                         comments={publi.comments}  // Mostrar la cantidad de comentarios real
@@ -393,3 +393,4 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 export default Feed;
+

@@ -2,6 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const cors = require('cors');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const app = express();
 
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -26,6 +29,33 @@ db.connect((err) => {
         throw err;
     }
     console.log('Connected to database');
+});
+
+// Configuración de almacenamiento de Multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = './uploads/';
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
+});
+
+const upload = multer({ storage: storage });
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Endpoint para subir una imagen
+app.post('/upload', upload.single('image'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No se subió ninguna imagen.');
+    }
+    const imageUrl = `http://localhost:3001/uploads/${req.file.filename}`;
+    res.send({ imageUrl });
 });
 
 app.post('/addPubli', (req, res) => {
@@ -56,7 +86,6 @@ app.post('/addPubli', (req, res) => {
         }
     });
 });
-
 
 app.post('/like', (req, res) => {
     const { id_publicacion, id_usuario, liked } = req.body;
@@ -92,9 +121,6 @@ app.post('/like', (req, res) => {
     }
 });
 
-
-
-
 // Actualizar el endpoint de obtención de publicaciones para incluir el recuento de likes
 app.get('/publicaciones', (req, res) => {
     const getPubliSQL = `
@@ -117,13 +143,12 @@ app.get('/publicaciones', (req, res) => {
                 titulo: publi.titulo,
                 contenido: publi.contenido,
                 id_usuario: publi.id_usuario,
-                imagen: publi.imagen ? Buffer.from(publi.imagen).toString('base64') : null,
+                imagen: publi.imagen ? `http://localhost:3001/uploads/${publi.imagen}` : null,
                 likes: publi.likes
             })));
         }
     });
 });
-
 
 // Endpoint para agregar un comentario
 app.post('/comentario', (req, res) => {
@@ -144,7 +169,6 @@ app.post('/comentario', (req, res) => {
     });
 });
 
-
 // Endpoint para obtener los comentarios de una publicación
 app.get('/comentarios/:idPublicacion', (req, res) => {
     const { idPublicacion } = req.params;
@@ -164,7 +188,6 @@ app.get('/comentarios/:idPublicacion', (req, res) => {
         }
     });
 });
-
 
 app.listen(3001, () => {
     console.log('Server running on port 3001');

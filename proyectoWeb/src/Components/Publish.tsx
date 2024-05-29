@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom';
 
 const PostForm: React.FC = () => {
     const navigate = useNavigate();
@@ -60,8 +60,6 @@ const PostForm: React.FC = () => {
             reader.onerror = error => reject(error);
         });
     };
-
-
 
     return (
         <div style={styles.container}>
