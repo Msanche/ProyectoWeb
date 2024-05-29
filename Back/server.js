@@ -57,7 +57,6 @@ app.post('/addPubli', (req, res) => {
     });
 });
 
-// En tu archivo de servidor Node.js
 
 app.post('/like', (req, res) => {
     const { id_publicacion, id_usuario, liked } = req.body;
@@ -125,6 +124,46 @@ app.get('/publicaciones', (req, res) => {
     });
 });
 
+
+// Endpoint para agregar un comentario
+app.post('/comentario', (req, res) => {
+    const { id_publicacion, id_usuario, comentario } = req.body;
+
+    const insertCommentSQL = `
+        INSERT INTO detallecomentariopublicacion (id_publicacion, id_usuario, comentario) 
+        VALUES (?, ?, ?)
+    `;
+    
+    db.query(insertCommentSQL, [id_publicacion, id_usuario, comentario], (err, result) => {
+        if (err) {
+            console.error('Error adding comment:', err);
+            res.status(500).json({ error: 'Error adding comment' });
+        } else {
+            res.json({ message: 'Comment added successfully' });
+        }
+    });
+});
+
+
+// Endpoint para obtener los comentarios de una publicación
+app.get('/comentarios/:idPublicacion', (req, res) => {
+    const { idPublicacion } = req.params;
+    const getCommentsSQL = `
+        SELECT c.id, c.comentario, c.id_usuario, u.nombre 
+        FROM detallecomentariopublicacion c
+        JOIN usuario u ON c.id_usuario = u.id
+        WHERE c.id_publicacion = ?
+        ORDER BY c.id ASC
+    `;
+    db.query(getCommentsSQL, [idPublicacion], (err, results) => {
+        if (err) {
+            console.error('Error fetching comments:', err);
+            res.status(500).send('Error fetching comments');
+        } else {
+            res.json(results);
+        }
+    });
+});
 
 
 app.listen(3001, () => {
