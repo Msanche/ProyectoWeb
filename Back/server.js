@@ -31,31 +31,25 @@ db.connect((err) => {
     console.log('Connected to database');
 });
 
-// Configuración de almacenamiento de Multer
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = './uploads/';
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true });
+app.get('/getFotos', (req, res) => {
+    const getPubliSQL = `
+        SELECT *
+        FROM Fotos f 
+    `;
+
+
+    db.query(getPubliSQL, (err, results) => {
+        if (err) {
+            console.error('Error fetching publications:', err);
+            res.status(500).send('Error fetching publications');
+        } else {
+            res.json(results.map(img => ({
+                
+                id:img.id,
+                imagen: img.imagen ? `http://localhost:3001/getFotos/${img.id}` : null,
+            })));
         }
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    }
-});
-
-const upload = multer({ storage: storage });
-
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Endpoint para subir una imagen
-app.post('/upload', upload.single('image'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send('No se subió ninguna imagen.');
-    }
-    const imageUrl = `http://localhost:3001/uploads/${req.file.filename}`;
-    res.send({ imageUrl });
+    });
 });
 
 app.post('/addPubli', (req, res) => {
