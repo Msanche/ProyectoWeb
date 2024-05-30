@@ -1,15 +1,11 @@
-import App from "./App";
 import ErrorPage from "./Components/ErrorPage";
 import Feed from './Components/Feed';
 import Publish from './Components/Publish';
-import Intro from "./Components/intro";
+import Login from "./Components/Login";
+import Register from "./Components/Register";
 
 const routes = [
-    {
-    path:"/",
-    element: <App/>,
-    errorElement: <ErrorPage/>
-  },
+
   {
     path:"feed",
     element: <Feed/>,
@@ -19,9 +15,16 @@ const routes = [
     element: <Publish/>,
   },
   {
-    path:"intro",
-    element: <Intro/>,
+    path:"/",
+    element: <Login/>,
+    errorElement: <ErrorPage/>
+
   },
+  {
+    path:"Register",
+    element: <Register/>,
+  },
+
 ];
 
 export default routes;

@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const app = express();
 
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
@@ -31,52 +32,70 @@ db.connect((err) => {
     console.log('Connected to database');
 });
 
-app.get('/getFotos', (req, res) => {
-    const getPubliSQL = `
-        SELECT *
-        FROM Fotos f 
-    `;
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/img');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); // Nombre único para evitar conflictos
+    }
+});
 
+const upload = multer({ storage });
 
-    db.query(getPubliSQL, (err, results) => {
+// Endpoint de login (GET)
+app.get('/login', (req, res) => {
+    const { correo, contrasena } = req.query;
+    
+    const getUserSQL = 'SELECT * FROM Usuario WHERE correo = ?';
+    db.query(getUserSQL, [correo], (err, results) => {
         if (err) {
-            console.error('Error fetching publications:', err);
-            res.status(500).send('Error fetching publications');
+            console.error('Error fetching user:', err);
+            res.status(500).send('Error fetching user');
+        } else if (results.length === 0) {
+            res.status(401).send('Correo o contraseña incorrectos');
         } else {
-            res.json(results.map(img => ({
-                
-                id:img.id,
-                imagen: img.imagen ? `http://localhost:3001/getFotos/${img.imagen}` : null,
-            })));
+            const user = results[0];
+            if (contrasena === user.contrasena) {
+                res.json({ message: 'Inicio de sesión exitoso', user });
+            } else {
+                res.status(401).send('Correo o contraseña incorrectos');
+            }
         }
     });
 });
 
-app.post('/addPubli', (req, res) => {
-    const { titulo, contenido, id_usuario, id_imagen } = req.body;
+// Endpoint de registro (POST)
+app.post('/register', (req, res) => {
+    const { nombre, fecha_nacimiento, contrasena, correo } = req.body;
 
-    console.log('Request body:', req.body); // Log the request body to check if the data is being received
 
-    // First, insert the image into the Fotos table
-    const insertImageSQL = 'INSERT INTO Fotos (imagen) VALUES (?)';
-    db.query(insertImageSQL, [id_imagen], (err, imageResult) => {
-        if (err) {
-            console.error('Error inserting image:', err);
-            res.status(500).send('Error inserting image');
-        } else {
-            const imageId = imageResult.insertId;
-
-            // Then, insert the publication into the publicaciones table using the image ID
-            const insertPubliSQL = 'INSERT INTO publicaciones (titulo, contenido, id_usuario, id_imagen) VALUES (?, ?, ?, ?)';
-            db.query(insertPubliSQL, [titulo, contenido, id_usuario, imageId], (err, result) => {
+        
+            const insertUserSQL = 'INSERT INTO Usuario (nombre, fecha_nacimiento, contrasena, correo) VALUES (?, ?, ?, ?)';
+            db.query(insertUserSQL, [nombre, fecha_nacimiento,contrasena, correo], (err, result) => {
                 if (err) {
-                    console.error('Error inserting publication:', err);
-                    res.status(500).send('Error inserting publication');
+                    console.error('Error inserting user:', err);
+                    res.status(500).send('Error inserting user');
                 } else {
-                    console.log('Publication inserted successfully:', result);
-                    res.send('Publicación agregada correctamente');
+                    res.json({ message: 'Registro exitoso' });
                 }
             });
+        
+   
+});
+
+app.post('/addPubli', upload.single('imagen'), (req, res) => {
+    const { titulo, contenido, id_usuario } = req.body;
+    const name_imagen = req.file ? req.file.filename : null;
+
+    const insertPubliSQL = 'INSERT INTO publicaciones (titulo, contenido, id_usuario, name_imagen) VALUES (?, ?, ?, ?)';
+    db.query(insertPubliSQL, [titulo, contenido, id_usuario, name_imagen], (err, result) => {
+        if (err) {
+            console.error('Error inserting publication:', err);
+            res.status(500).send('Error inserting publication');
+        } else {
+            console.log('Publication inserted successfully:', result);
+            res.send('Publicación agregada correctamente');
         }
     });
 });
@@ -85,11 +104,7 @@ app.post('/like', (req, res) => {
     const { id_publicacion, id_usuario, liked } = req.body;
 
     if (liked) {
-        // Eliminar el like si ya está presente
-        const deleteLikeSQL = `
-            DELETE FROM detalleme_gustapublicacion
-            WHERE id_publicacion = ? AND id_usuario = ?
-        `;
+        const deleteLikeSQL = 'DELETE FROM detalleme_gustapublicacion WHERE id_publicacion = ? AND id_usuario = ?';
         db.query(deleteLikeSQL, [id_publicacion, id_usuario], (err, result) => {
             if (err) {
                 console.error('Error deleting like:', err);
@@ -99,11 +114,7 @@ app.post('/like', (req, res) => {
             }
         });
     } else {
-        // Agregar el like si no está presente
-        const insertLikeSQL = `
-            INSERT INTO detalleme_gustapublicacion (id_publicacion, id_usuario, interaccion) 
-            VALUES (?, ?, 1)
-        `;
+        const insertLikeSQL = 'INSERT INTO detalleme_gustapublicacion (id_publicacion, id_usuario, interaccion) VALUES (?, ?, 1)';
         db.query(insertLikeSQL, [id_publicacion, id_usuario], (err, result) => {
             if (err) {
                 console.error('Error inserting like:', err);
@@ -115,18 +126,14 @@ app.post('/like', (req, res) => {
     }
 });
 
-// Actualizar el endpoint de obtención de publicaciones para incluir el recuento de likes
 app.get('/publicaciones', (req, res) => {
     const getPubliSQL = `
-        SELECT p.id, p.titulo, p.contenido, p.id_usuario, f.imagen, COUNT(dp.id) AS likes
+        SELECT p.id, p.titulo, p.contenido, p.id_usuario, p.name_imagen, COUNT(dp.id) AS likes
         FROM Publicaciones p
-        LEFT JOIN Fotos f ON p.id_imagen = f.id
-        LEFT JOIN detalleme_gustapublicacion dp ON p.id = dp.id_publicacion
-        AND dp.interaccion = 1
+        LEFT JOIN detalleme_gustapublicacion dp ON p.id = dp.id_publicacion AND dp.interaccion = 1
         GROUP BY p.id
         ORDER BY p.id DESC
     `;
-
     db.query(getPubliSQL, (err, results) => {
         if (err) {
             console.error('Error fetching publications:', err);
@@ -137,22 +144,17 @@ app.get('/publicaciones', (req, res) => {
                 titulo: publi.titulo,
                 contenido: publi.contenido,
                 id_usuario: publi.id_usuario,
-                imagen: publi.imagen ? `http://localhost:3001/uploads/${publi.imagen}` : null,
+                name_imagen: publi.name_imagen ? `http://localhost:3001/public/img/${publi.name_imagen}` : null,
                 likes: publi.likes
             })));
         }
     });
 });
 
-// Endpoint para agregar un comentario
 app.post('/comentario', (req, res) => {
     const { id_publicacion, id_usuario, comentario } = req.body;
 
-    const insertCommentSQL = `
-        INSERT INTO detallecomentariopublicacion (id_publicacion, id_usuario, comentario) 
-        VALUES (?, ?, ?)
-    `;
-    
+    const insertCommentSQL = 'INSERT INTO detallecomentariopublicacion (id_publicacion, id_usuario, comentario) VALUES (?, ?, ?)';
     db.query(insertCommentSQL, [id_publicacion, id_usuario, comentario], (err, result) => {
         if (err) {
             console.error('Error adding comment:', err);
@@ -163,7 +165,6 @@ app.post('/comentario', (req, res) => {
     });
 });
 
-// Endpoint para obtener los comentarios de una publicación
 app.get('/comentarios/:idPublicacion', (req, res) => {
     const { idPublicacion } = req.params;
     const getCommentsSQL = `

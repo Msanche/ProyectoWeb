@@ -15,28 +15,18 @@ const PostForm: React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        let base64Image = null;
-
+        const formData = new FormData();
+        formData.append('titulo', title);
+        formData.append('contenido', content);
+        formData.append('id_usuario', '1');
         if (image) {
-            base64Image = await toBase64(image);
+            formData.append('imagen', image);
         }
-
-        const data = {
-            titulo: title,
-            contenido: content,
-            id_usuario: 1,
-            id_imagen: base64Image,
-        };
-
-        console.log('Sending data:', data); // Log the data to be sent
 
         try {
             const response = await fetch('http://localhost:3001/addPubli', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
+                body: formData
             });
 
             if (response.ok) {
@@ -50,15 +40,6 @@ const PostForm: React.FC = () => {
         } catch (error) {
             console.error('Error uploading data:', error);
         }
-    };
-
-    const toBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = error => reject(error);
-        });
     };
 
     return (
@@ -114,7 +95,7 @@ const PostForm: React.FC = () => {
                 <button onClick={handleSubmit} style={styles.publishButton}>
                     Publicar
                 </button>
-                <button onClick={() => navigate('/')} style={styles.exitButton}>
+                <button onClick={() => navigate('/feed')} style={styles.exitButton}>
                     Salir
                 </button>
             </div>
@@ -129,7 +110,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         flexDirection: 'column',
         padding: '20px',
         backgroundColor: '#f7e7e1',
-        width: 1400,
+        width: 1700,
         height: 850,
         boxSizing: 'border-box',
         fontFamily: 'Arial, sans-serif',
@@ -141,7 +122,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     title: {
         margin: 0,
         fontSize: '24px',
-        textAlign: 'left'
+        textAlign: 'left',
+        color:'black',
     },
     separator: {
         marginTop: '10px',
@@ -176,7 +158,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     label: {
         display: 'block',
         marginBottom: '10px',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        color:'black',
+
     },
     input: {
         width: '100%',

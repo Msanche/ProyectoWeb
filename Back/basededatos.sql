@@ -9,19 +9,14 @@ CREATE TABLE Usuario(
     correo VARCHAR(255) NOT NULL
 ); 
 
-CREATE TABLE Fotos(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    imagen MEDIUMBLOB
-); 
 
 CREATE TABLE Publicaciones(
     id INT AUTO_INCREMENT PRIMARY KEY,
     titulo VARCHAR(100) NOT NULL,
     contenido VARCHAR(255) NOT NULL,
     id_usuario INT NOT NULL,
-    id_imagen INT,
+    name_imagen VARCHAR(25),
     FOREIGN KEY(id_usuario) REFERENCES Usuario(id),
-    FOREIGN KEY(id_imagen) REFERENCES Fotos(id)
 ); 
 
 CREATE TABLE DetalleComentarioPublicacion(
@@ -34,5 +29,8 @@ CREATE TABLE DetalleComentarioPublicacion(
     FOREIGN KEY(id_usuario) REFERENCES Usuario(id));
     
     
-    CREATE TABLE DetalleMe_gustaPublicacion 
-    ( id INT AUTO_INCREMENT PRIMARY KEY, id_publicacion INT NOT NULL, id_usuario INT NOT NULL, interaccion INT NOT NULL )
+    CREATE TABLE DetalleMe_gustaPublicacion ( 
+    id INT AUTO_INCREMENT PRIMARY KEY, 
+    id_publicacion INT NOT NULL, 
+    id_usuario INT NOT NULL, 
+    interaccion INT NOT NULL );

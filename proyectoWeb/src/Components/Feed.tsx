@@ -6,7 +6,7 @@ interface Comment {
     id_publicacion: number;
     id_usuario: number;
     comentario: string;
-    username: string; // Añadido para mostrar el nombre de usuario
+    username: string;
 }
 
 interface LikeInfo {
@@ -19,11 +19,10 @@ interface Publicacion {
     titulo: string;
     contenido: string;
     id_usuario: number;
-    id_imagen: number | null;
+    name_imagen: string | null;
     fecha: string;
-    imagen: string | null;
     likes: number;
-    comments: number; // Añadido para mantener la cantidad de comentarios
+    comments: number;
 }
 
 interface PostProps {
@@ -44,6 +43,8 @@ const Post: React.FC<PostProps> = ({ username, imageSrc, title, description, lik
     const [newComment, setNewComment] = useState<string>('');
     const [commentsList, setCommentsList] = useState<Comment[]>([]);
 
+
+    console.log(imageSrc);
     const handleLike = () => {
         onLike({ id: id, liked: !liked });
         setLiked(!liked);
@@ -66,7 +67,7 @@ const Post: React.FC<PostProps> = ({ username, imageSrc, title, description, lik
             })
             .then(data => {
                 setCommentsList(data);
-                onUpdateComments(id, data.length); // Actualizar la cantidad de comentarios
+                onUpdateComments(id, data.length);
             })
             .catch(error => console.error('Error fetching comments:', error.message));
     };
@@ -76,7 +77,7 @@ const Post: React.FC<PostProps> = ({ username, imageSrc, title, description, lik
 
         const commentData = {
             id_publicacion: id,
-            id_usuario: 1, // Aquí puedes usar el ID del usuario autenticado
+            id_usuario: 2,
             comentario: newComment,
         };
 
@@ -91,12 +92,12 @@ const Post: React.FC<PostProps> = ({ username, imageSrc, title, description, lik
             if (!response.ok) {
                 return response.text().then(text => { throw new Error(text) });
             }
-            return response.json(); // Esperamos un JSON con el comentario añadido
+            return response.json();
         })
         .then((newComment) => {
             setNewComment('');
             setCommentsList([...commentsList, newComment]);
-            onUpdateComments(id, commentsList.length + 1); // Actualizar la cantidad de comentarios
+            onUpdateComments(id, commentsList.length + 1);
         })
         .catch(error => {
             console.error('Error adding comment:', error);
@@ -156,7 +157,7 @@ const Feed: React.FC = () => {
     const [error, setError] = useState<string>('');
     const navigate = useNavigate();
 
-    useEffect (() => {
+    useEffect(() => {
         fetch('http://localhost:3001/publicaciones')
             .then(response => {
                 if (!response.ok) {
@@ -184,7 +185,7 @@ const Feed: React.FC = () => {
             },
             body: JSON.stringify({
                 id_publicacion: idPublicacion,
-                id_usuario: 1,
+                id_usuario: 2,
                 liked: likeInfo.liked,
             }),
         })
@@ -224,11 +225,17 @@ const Feed: React.FC = () => {
                 <div style={styles.menuItem}>
                     <div style={styles.icon}><span role="img" aria-label="home">🏠</span></div>
                     <div>
-                        <button onClick={() => navigate('/')} style={styles.color}>
+                        <span style={styles.color}>
                             Home
-                        </button>
+                        </span>
                     </div>
                 </div>
+                <div style={styles.icon}><span role="img" aria-label="home">💻</span></div>
+                    <div>
+                        <button onClick={() => navigate('/Publish')} style={styles.color}>
+                            Crear publicación
+                        </button>
+                    </div>
             </aside>
             {error && <div style={styles.error}>{error}</div>}
             <main style={styles.mainContent}>
@@ -237,10 +244,10 @@ const Feed: React.FC = () => {
                         key={publi.id}
                         username={`Usuario ${publi.id_usuario}`} 
                         title={publi.titulo}
-                        imageSrc={publi.imagen ? `http://localhost:3001/${publi.imagen}` : ''} // URL completa para las imágenes
+                        imageSrc={publi.name_imagen ? `${publi.name_imagen}` : ''} // Ruta corregida
                         description={publi.contenido} 
                         likes={publi.likes}
-                        comments={publi.comments}  // Mostrar la cantidad de comentarios real
+                        comments={publi.comments}
                         id={publi.id}
                         onLike={handleLike}
                         onUpdateComments={handleUpdateComments}
@@ -252,16 +259,16 @@ const Feed: React.FC = () => {
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-    color:{
-        backgroundColor:'#fffae6',
-        color:'black'
+    color: {
+        backgroundColor: '#fffae6',
+        color: 'black'
     },
     container: {
         display: 'flex',
         height: '100vh',
         backgroundColor: '#fdece8',
         fontFamily: 'Arial, sans-serif',
-        width: 1500
+        width: '1500px'
     },
     sidebar: {
         display: 'flex',
@@ -282,115 +289,116 @@ const styles: { [key: string]: React.CSSProperties } = {
     menuItem: {
         display: 'flex',
         alignItems: 'center',
-        padding: '10px 0',
-        fontSize: '18px',
-        cursor: 'pointer',
-        backgroundColor: '#fffae6',
-        borderRadius: '8px',
-        paddingLeft: '10px'
+        marginBottom: '10px'
     },
     icon: {
-        marginRight: '10px',
+        fontSize: '24px',
+        marginRight: '10px'
     },
     mainContent: {
-        padding: '20px',
-        overflowY: 'auto',
         flex: 1,
-        backgroundColor: '#fdece8',
+        padding: '20px',
+        overflowY: 'auto'
     },
     post: {
         backgroundColor: '#fff',
-        borderRadius: '8px',
         padding: '20px',
         marginBottom: '20px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        width: '50%',
-        color: 'black',
+        borderRadius: '10px',
+        boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+        width: '1000px',
     },
     postHeader: {
         display: 'flex',
         alignItems: 'center',
-        marginBottom: '10px',
+        marginBottom: '10px'
     },
     postUserInfo: {
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'center'
     },
     userAvatar: {
         width: '40px',
         height: '40px',
         borderRadius: '50%',
-        marginRight: '10px',
+        marginRight: '10px'
     },
     username: {
         fontWeight: 'bold',
         color: 'black'
     },
-    postImage: {
-        width: '100%',
-        borderRadius: '8px',
-        marginBottom: '10px',
-    },
     postTitle: {
+        fontSize: '20px',
         fontWeight: 'bold',
+        margin: '10px 0',
         color: 'black',
     },
     postDescription: {
+        fontSize: '16px',
+        margin: '10px 0',
         color: 'black',
+    },
+    postImage: {
+        width: '50%',
+        height:'50%',
+        borderRadius: '10px',
+        margin: '10px 0'
     },
     postFooter: {
         display: 'flex',
         justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: '10px'
     },
     postActions: {
         display: 'flex',
-        gap: '10px',
-        color: '#777',
-        fontSize: '14px',   
-        backgroundColor:'#ffffff'
+        alignItems: 'center'
     },
     buton: {
-        backgroundColor: '#ffffff',
+        backgroundColor: 'transparent',
+        border: 'none',
         color: 'black',
-        borderColor: '#ffffff',
         cursor: 'pointer',
+        marginRight: '10px',
+        fontSize: '16px',
     },
     commentsSection: {
-        marginTop: '10px',
-        backgroundColor: '#f5f5f5',
-        padding: '10px',
-        borderRadius: '8px',
-        position: 'relative',
-        zIndex: 1,
+        marginTop: '20px'
     },
     addComment: {
         display: 'flex',
-        gap: '10px',
-        marginBottom: '10px',
+        marginBottom: '10px'
     },
     commentInput: {
         flex: 1,
-        padding: '8px',
-        borderRadius: '4px',
+        padding: '10px',
+        borderRadius: '5px',
         border: '1px solid #ccc',
+        marginRight: '10px'
     },
     commentButton: {
-        padding: '8px 12px',
-        borderRadius: '4px',
-        backgroundColor: '#007BFF',
-        color: '#fff',
+        padding: '10px 20px',
+        borderRadius: '5px',
         border: 'none',
-        cursor: 'pointer',
+        backgroundColor: '#007bff',
+        color: '#fff',
+        cursor: 'pointer'
     },
     commentsList: {
-        maxHeight: '200px',
-        overflowY: 'auto',
+        marginTop: '10px'
     },
     comment: {
-        padding: '8px 0',
-        borderBottom: '1px solid #ccc',
+        padding: '10px',
+        borderRadius: '5px',
+        backgroundColor: '#f9f9f9',
+        marginBottom: '10px',
+        color:'black'
     },
+    error: {
+        color: 'red',
+        fontWeight: 'bold',
+        marginBottom: '20px'
+    }
 };
 
 export default Feed;
-
