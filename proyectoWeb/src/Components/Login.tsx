@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+
+
+
 const Login: React.FC = () => {
     const [correo, setCorreo] = useState('');
     const [contrasena, setContrasena] = useState('');
@@ -10,7 +13,7 @@ const Login: React.FC = () => {
     const handleLogin = () => {
         const loginParams = `?correo=${correo}&contrasena=${contrasena}`;
     
-        fetch(`http://localhost:3001/login${loginParams}`, {
+        fetch(`http://localhost:3001/Login${loginParams}`, {
             method: 'GET', // Cambia a GET si tu servidor espera solicitudes GET
             headers: {
                 'Content-Type': 'application/json',
@@ -22,8 +25,13 @@ const Login: React.FC = () => {
             }
             return response.json();
         })
-        .then(() => {
-            navigate('/feed');
+        .then((user) => { // Aquí obtienes los datos del usuario
+            console.log(" Login");
+            console.log(user);
+            console.log(user.user.id);
+            console.log("Saliendo Login");
+
+            navigate('/feed', { state: { user} }); // Pasa los datos del usuario al navegar
         })
         .catch(error => {
             setError('Correo o contraseña incorrectos');
@@ -31,12 +39,8 @@ const Login: React.FC = () => {
         });
     };
     
-
     const handleRegister = () => {
-        
-            navigate('/Register');
-       
-        
+        navigate('/Register');
     };
 
     return (
@@ -59,7 +63,6 @@ const Login: React.FC = () => {
             />
             <button onClick={handleLogin} style={styles.button}>Iniciar Sesión</button>
             <button onClick={handleRegister} style={styles.button}>Registrar</button>
-
         </div>
     );
 };
@@ -71,7 +74,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
-        width:1700,
+        width: 1700,
         backgroundColor: '#fdece8',
         fontFamily: 'Arial, sans-serif',
     },
@@ -94,7 +97,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         backgroundColor: '#007bff',
         color: '#fff',
         cursor: 'pointer',
-        marginBottom:15,
+        marginBottom: 15,
     },
     error: {
         color: 'red',

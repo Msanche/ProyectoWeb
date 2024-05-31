@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+interface User {
+    user: User;
+    id: number;
+}
 
 const PostForm: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { user } = location.state as { user: User };
+
     const [title, setTitle] = useState<string>('');
     const [content, setContent] = useState<string>('');
     const [image, setImage] = useState<File | null>(null);
     const [confirmationMessage, setConfirmationMessage] = useState<string>('');
+
+
+    console.log(user);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -18,7 +29,7 @@ const PostForm: React.FC = () => {
         const formData = new FormData();
         formData.append('titulo', title);
         formData.append('contenido', content);
-        formData.append('id_usuario', '1');
+        formData.append('id_usuario', user.user.id.toString());
         if (image) {
             formData.append('imagen', image);
         }
@@ -95,7 +106,7 @@ const PostForm: React.FC = () => {
                 <button onClick={handleSubmit} style={styles.publishButton}>
                     Publicar
                 </button>
-                <button onClick={() => navigate('/feed')} style={styles.exitButton}>
+                <button onClick={() => navigate('/feed', { state: { user } })} style={styles.exitButton}>
                     Salir
                 </button>
             </div>

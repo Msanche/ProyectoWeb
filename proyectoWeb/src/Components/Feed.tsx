@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface Comment {
     id: number;
-    id_publicacion: number;
-    id_usuario: number;
     comentario: string;
-    username: string;
-}
+    id_usuario: number;
+    nombre: string;
+    id_publicacion: number;
 
+}
+interface User {
+    user: User;
+    id: number;
+    correo:string;
+    contrasena:string;
+}
 interface LikeInfo {
     id: number;
     liked: boolean;
@@ -23,6 +29,8 @@ interface Publicacion {
     fecha: string;
     likes: number;
     comments: number;
+    name:string;
+
 }
 
 interface PostProps {
@@ -35,16 +43,21 @@ interface PostProps {
     id: number;
     onLike: (likeInfo: LikeInfo) => void;
     onUpdateComments: (id: number, commentsCount: number) => void;
+    userId: number;
 }
+
+
 
 const Post: React.FC<PostProps> = ({ username, imageSrc, title, description, likes, comments, id, onLike, onUpdateComments }) => {
     const [liked, setLiked] = useState<boolean>(false);
     const [showComments, setShowComments] = useState<boolean>(false);
     const [newComment, setNewComment] = useState<string>('');
     const [commentsList, setCommentsList] = useState<Comment[]>([]);
+    const location = useLocation();
+    const state = location.state as { user: User } | null;
 
+  
 
-    console.log(imageSrc);
     const handleLike = () => {
         onLike({ id: id, liked: !liked });
         setLiked(!liked);
@@ -75,9 +88,12 @@ const Post: React.FC<PostProps> = ({ username, imageSrc, title, description, lik
     const handleAddComment = () => {
         if (newComment.trim() === '') return;
 
+            console.log("comments")
+            console.log(state);
+
         const commentData = {
             id_publicacion: id,
-            id_usuario: 2,
+            id_usuario: state?.user.user.id,
             comentario: newComment,
         };
 
@@ -142,7 +158,7 @@ const Post: React.FC<PostProps> = ({ username, imageSrc, title, description, lik
                     <div style={styles.commentsList}>
                         {commentsList.map(comment => (
                             <div key={comment.id} style={styles.comment}>
-                                <strong>{comment.username}</strong>: {comment.comentario}
+                                <strong>{comment.nombre}</strong>: {comment.comentario}
                             </div>
                         ))}
                     </div>
@@ -156,8 +172,15 @@ const Feed: React.FC = () => {
     const [publicaciones, setPublicaciones] = useState<Publicacion[]>([]);
     const [error, setError] = useState<string>('');
     const navigate = useNavigate();
+    const location = useLocation();
+    const state = location.state as { user: User } | null;
 
     useEffect(() => {
+        if (!state || !state.user) {
+            navigate('/'); // Redirigir a la página de login si no hay información del usuario
+            return;
+        }
+
         fetch('http://localhost:3001/publicaciones')
             .then(response => {
                 if (!response.ok) {
@@ -173,10 +196,15 @@ const Feed: React.FC = () => {
                 console.error('Error fetching publications:', error.message);
                 setError('Error al obtener las publicaciones. Por favor, inténtalo de nuevo más tarde.');
             });
-    }, []);
+    }, [navigate, state]);
 
     const handleLike = (likeInfo: LikeInfo) => {
         const idPublicacion = likeInfo.id;
+
+        if (!state || !state.user) return;
+
+        const { user } = state;
+        console.log(user);
 
         fetch('http://localhost:3001/like', {
             method: 'POST',
@@ -185,7 +213,7 @@ const Feed: React.FC = () => {
             },
             body: JSON.stringify({
                 id_publicacion: idPublicacion,
-                id_usuario: 2,
+                id_usuario: user.user.id,
                 liked: likeInfo.liked,
             }),
         })
@@ -218,6 +246,47 @@ const Feed: React.FC = () => {
         );
     };
 
+    const handleSesion = () => {
+        navigate('/');
+
+    }
+
+    const handlePubli = () => {
+        if (!state || !state.user.user.id) {
+            navigate('/'); // Redirigir a la página de login si no hay información del usuario
+            return;
+        }
+        console.log(state.user.user.correo);
+        const correo = state.user.user.correo;
+        const contrasena = state.user.user.contrasena;
+    
+        const loginParams =`?correo=${correo}&contrasena=${contrasena}`;
+    
+        fetch(`http://localhost:3001/Login${loginParams}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => { throw new Error(text) });
+            }
+            return response.json();
+        })
+        .then((user) => { // Aquí obtienes los datos del usuario
+            console.log("Datos del usuario obtenidos:", state.user.user.id);
+            navigate('/publish', { state: { user } }); // Pasar los datos del usuario a la ruta /publish
+        })
+        .catch(error => {
+            console.log(state.user.user.id);
+
+            setError('Error al obtener los datos del usuario');
+            console.error('Error fetching user data:', error);
+        });
+    };
+    
+
     return (
         <div style={styles.container}>
             <aside style={styles.sidebar}>
@@ -228,12 +297,16 @@ const Feed: React.FC = () => {
                         <span style={styles.color}>
                             Home
                         </span>
-                    </div>
+                        </div>
                 </div>
                 <div style={styles.icon}><span role="img" aria-label="home">💻</span></div>
                     <div>
-                        <button onClick={() => navigate('/Publish')} style={styles.color}>
+                        <button onClick={handlePubli} style={styles.color}>
                             Crear publicación
+                        </button>
+
+                        <button onClick={handleSesion} style={styles.color}>
+                            Cerrar Sesión
                         </button>
                     </div>
             </aside>
@@ -242,15 +315,16 @@ const Feed: React.FC = () => {
                 {publicaciones.map((publi) => (
                     <Post 
                         key={publi.id}
-                        username={`Usuario ${publi.id_usuario}`} 
+                        username={`${publi.name}`} 
                         title={publi.titulo}
-                        imageSrc={publi.name_imagen ? `${publi.name_imagen}` : ''} // Ruta corregida
+                        imageSrc={publi.name_imagen ? `${publi.name_imagen}` : ''} 
                         description={publi.contenido} 
                         likes={publi.likes}
                         comments={publi.comments}
                         id={publi.id}
                         onLike={handleLike}
                         onUpdateComments={handleUpdateComments}
+                        userId={state!.user.id}
                     />
                 ))}
             </main>

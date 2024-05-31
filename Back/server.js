@@ -128,11 +128,27 @@ app.post('/like', (req, res) => {
 
 app.get('/publicaciones', (req, res) => {
     const getPubliSQL = `
-        SELECT p.id, p.titulo, p.contenido, p.id_usuario, p.name_imagen, COUNT(dp.id) AS likes
-        FROM Publicaciones p
-        LEFT JOIN detalleme_gustapublicacion dp ON p.id = dp.id_publicacion AND dp.interaccion = 1
-        GROUP BY p.id
-        ORDER BY p.id DESC
+    SELECT
+    p.id,
+    p.titulo,
+    p.contenido,
+    p.id_usuario,
+    p.name_imagen,
+    COUNT(dp.id) AS likes,
+    u.nombre AS nombre_usuario
+FROM
+    Publicaciones p
+LEFT JOIN DetalleMe_gustaPublicacion dp ON
+    p.id = dp.id_publicacion AND dp.interaccion = 1
+LEFT JOIN Usuario u ON
+    p.id_usuario = u.id
+GROUP BY
+    p.id
+ORDER BY
+    p.id
+DESC
+    ;
+
     `;
     db.query(getPubliSQL, (err, results) => {
         if (err) {
@@ -145,7 +161,8 @@ app.get('/publicaciones', (req, res) => {
                 contenido: publi.contenido,
                 id_usuario: publi.id_usuario,
                 name_imagen: publi.name_imagen ? `http://localhost:3001/public/img/${publi.name_imagen}` : null,
-                likes: publi.likes
+                likes: publi.likes,
+                name: publi.nombre_usuario,
             })));
         }
     });
@@ -179,7 +196,13 @@ app.get('/comentarios/:idPublicacion', (req, res) => {
             console.error('Error fetching comments:', err);
             res.status(500).send('Error fetching comments');
         } else {
-            res.json(results);
+            res.json(results.map(com => ({
+                id: com.id,
+                comentario: com.comentario,
+                id_usuario: com.id_usuario,
+                nombre: com.nombre,
+                id_publicacion:com.id_publicacion,
+            })));
         }
     });
 });

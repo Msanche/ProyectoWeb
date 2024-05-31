@@ -34,6 +34,10 @@ const Register: React.FC = () => {
         });
     };
 
+    const handleBack = () => {
+        navigate('/');
+    }
+
     return (
         <div style={styles.container}>
             <h2 style={styles.title}>Registrarse</h2>
@@ -67,6 +71,8 @@ const Register: React.FC = () => {
                 style={styles.input}
             />
             <button onClick={handleRegister} style={styles.button}>Registrarse</button>
+            <button onClick={handleBack} style={styles.button}>Volver</button>
+
         </div>
     );
 };
@@ -101,6 +107,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         backgroundColor: '#007bff',
         color: '#fff',
         cursor: 'pointer',
+        marginBottom:20,
     },
     error: {
         color: 'red',
