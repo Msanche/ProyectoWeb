@@ -60,28 +60,28 @@ El proyecto esta estrucurado de la siguiente manera
 
 
 **Inicio de sesión**
-![Inicio de sesión](./README/IniciarSesión.png)
+![Inicio de sesión](./proyectoWeb/README/IniciarSesión.png)
 
 Aquí podremos iniciar sesión si ya contamos con una cuenta , introduciendo el correo con el cual nos registramos y la contraseña, en caso de no tener una cuenta podemos dar clic en **Registrar** para ir a la página de registro.
 
 **Registro**
-![Register](./README/register.png)
+![Register](./proyectoWeb/README/register.png)
 Aquí nos podremos registrar introduciendo nuestros datos, una vez hemos terminado podemos dar clic en registrarse y nos devolvera a la página de login, en caso de que ya estemos registrados podemos dar clic en *Volver* y regresaremos a la página de login.
 
 **Feed**
-![Register](./README/Feed.png)
+![Register](./proyectoWeb/README/Feed.png)
 Aquí podremos ver las publicaciones de los otros usuarios, así como interactuar con dichas publicaciones mediante likes y comentarios, podremos navegar tambien a crear publicaciones o a cerrar nuestra sesión.
 
 **Publish**
-![Register](./README/Publish.png)
+![Register](./proyectoWeb/README/Publish.png)
 Aquí podremos crear nuestras publicaciones las cuales debene contener un titulo, contenido y opcionalmente una imagen , una vez ingrese los datos necesarios podras publicar tu contenido y posteriormente salir.
 
 **Like**
-![Like](./README/Like.png)
+![Like](./proyectoWeb/README/Like.png)
 Podras dar like a las publicaciones en el *corazón* o donde esta escrito *likes*
 
 **Comments**
-![Comments](./README/comments.png)
+![Comments](./proyectoWeb/README/comments.png)
 Podras comentar las publicaciones dando clic en *comments* y escribiendo tu comentario en el rectangulo negro, para publicarlo da clic en *Comment* y luego da clic nuevamente en comments para que se muestre.
 
 
