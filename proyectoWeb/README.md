@@ -35,7 +35,26 @@ Pasos para ejecutar el proyecto:
 7. Por ultimo da clic en las letras azules de localhost: http://localhost:5173/ para acceder a la página 
 ## Estructura del Proyecto
 
-Descripción de la estructura del proyecto, incluyendo la organización de los archivos y carpetas principales.
+El proyecto se basa en un pequeña red social que permita la interacción de usuarios mediante publicaciones, donde estos podrán dar like o comentar sus publicaciones o las de otros para compartir sus gustos o conocimiento
+El proyecto esta estrucurado de la siguiente manera
+-   Backend
+    -   En el bakend contamos con la configuración del servidor donde se incluyen los endpoints y la conección a la base de datos. **(server.js)**
+    -   Se incluye el archivo sql de la base de datos **(basededatos.sql)**
+    -   una carpeta **public/img** donde se guardan las fotos que los usuarios publican de manera local
+-   Fontend
+    -   Aquí contamos con los componentes 
+        -   App.test.jsx el cual es el encargado de almacenar los tests que vamos a realizar
+        -   ErrorPage.tsx El cual es el que entra en pantalla cuando se introduce una ruta no valida.
+        -   Feed que es donde podemos ver e interactuar con las publicaciones de los demas usuarios
+        -   Login que es donde podemos logearnos para iniciar sesión 
+        -   Publish que es donde podemos hacer nuestras publicaciones
+        -   Register que es donde nos podemos registrar par poder iniciar sesión
+    -   El setup del test
+        -   El cual se encarga de que las pruebas se ejecuten correctamente
+    -   las rutas
+        -   Son las encargadas de dar navegación a nuestra página
+    -   el componente **App.tsx**
+        -   Sobre el cual inicialmente se haría la navegación entre Feed y Pulish pero con la llegada de Login entró en desuso.
 
 ## Prototipos de la Vista y Manual de Uso
 
