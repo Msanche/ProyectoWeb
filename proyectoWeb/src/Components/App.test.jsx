@@ -5,9 +5,9 @@ import Login from './Login';
 import { BrowserRouter as Router } from 'react-router-dom'; // Importa BrowserRouter para envolver el componente Login
 
 
-it('renders without crashing', () => {
+it('render sin fallos', () => {
   render(
-    <Router> {/* Envuelve el componente Login con BrowserRouter */}
+    <Router> 
       <Login />
     </Router>
   );
@@ -19,9 +19,9 @@ it('renders without crashing', () => {
 });
 
 
-it('updates state when input values change', () => {
+it('Actualización del estado al introducir datos', () => {
   render(
-    <Router> {/* Envuelve el componente Login con BrowserRouter */}
+    <Router>
       <Login />
     </Router>
   );
